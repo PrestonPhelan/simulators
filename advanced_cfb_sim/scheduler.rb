@@ -47,5 +47,36 @@ end
 
 ##Conference Schedule, CONSTANT sim-to-sim
   ##14-team conferences: 6 division games, 3 other division
+def seven_team_division_games(division_hash, conference)
+  games = Array.new
+  divisions = TEAMS[conference].keys
+  divisions.each do |division|
+    teams = division_hash["#{conference.to_s} #{division.to_s}"].shuffle
+
+    teams.each_with_index do |team, idx|
+      games << [team, teams[idx - 1]]
+      games << [team, teams[idx - 2]]
+      games << [team, teams[idx - 3]]
+    end
+  end
+
+  games
+end
+
+def six_team_division_games(division_hash, conference)
+  games = Array.new
+  divisions = TEAMS[conference].keys
+  divisions.each do |division|
+    teams = division_hash["#{conference.to_s} #{division.to_s}"].shuffle
+
+    teams.each_with_index do |team, idx|
+      games << [team, teams[idx - 1]]
+      games << [team, teams[idx - 2]]
+      games << [team, teams[idx - 3]] if idx < 3
+    end
+  end
+
+  games
+end
   ##Pac-12: 5 division game, 4 other division
   ##Big 12: Every other team round robin

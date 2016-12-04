@@ -16,10 +16,20 @@ def new_conference_hash(teams)
   conferences = Hash.new { Array.new }
 
   teams.each do |team|
-    conferences[team.conference] += [team]
+    conferences[team.conference] << [team]
   end
 
   conferences
+end
+
+def new_division_hash(teams)
+  divisions = Hash.new { Array.new }
+
+  teams.each do |team|
+    string = "#{team.conference} #{team.division}"
+    divisions[string] += [team]
+  end
+  divisions
 end
 
 ##Run G5 games
