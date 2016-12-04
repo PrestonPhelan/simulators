@@ -79,6 +79,26 @@ def six_team_division_games(division_hash, conference)
   games
 end
 
+def large_interdivision_games(division_hash, conference)
+  games = Array.new
+  divisions = TEAMS[conference].keys.shuffle
+
+  first_division = division_hash["#{conference.to_s} #{divisions[0].to_s}"].shuffle
+  second_division = division_hash["#{conference.to_s} #{divisions[1].to_s}"].shuffle
+
+  first_division.each_with_index do |team, idx|
+    games << [team, second_division[idx - 1]]
+    games << [team, second_division[idx - 2]] if idx < 4
+  end
+
+  second_division.each_with_index do |team, idx|
+    games << [team, first_division[idx - 1]]
+    games << [team, first_division[idx - 5]] if idx > 1 && idx < 5
+  end
+
+  games
+end
+
 def pac_12_interdivision_games(division_hash)
   games = Array.new
   north = division_hash["PAC_12 North"].shuffle
@@ -112,9 +132,7 @@ end
 
 
 # division_hash = new_division_hash(Team.create_all)
-# games = pac_12_interdivision_games(division_hash)
-#
-# print games
+# games = large_interdivision_games(division_hash, :Big_Ten)
 #
 # games.each do |matchup|
 #   print matchup.map(&:to_s)
@@ -123,10 +141,10 @@ end
 #
 # puts "#{games.length} games generated."
 #
-# division_hash["PAC_12 North"].each do |team|
+# division_hash["Big_Ten East"].each do |team|
 #   puts "#{games.flatten.count(team)} games for #{team}"
 # end
 #
-# division_hash["PAC_12 South"].each do |team|
+# division_hash["Big_Ten West"].each do |team|
 #   puts "#{games.flatten.count(team)} games for #{team}"
 # end
