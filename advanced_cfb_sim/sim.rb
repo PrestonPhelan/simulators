@@ -89,13 +89,32 @@ def run_season(teams = Team.create_all)
 
   games.shuffle.each { |game| sim_game(game[0], game[1]) }
 
+  render_standings(teams)
+
   champ_games = get_championship_games(teams)
 
   champ_games.each { |_, game| champ_sim(game[0], game[1]) }
+
+  playoff_teams = get_playoff_teams(teams)
+
+  playoff_matchups = [
+    [playoff_teams[0], playoff_teams[3]],
+    [playoff_teams[1], playoff_teams[2]]
+  ]
+
+  national_championship = []
+
+  playoff_matchups.each do |game|
+    national_championship << sim_game(game[0], game[1])
+  end
+
+  champion = sim_game(national_championship[0], national_championship[1])
+
+  puts "#{champion} wins the national championship!"
 end
 
 def ranker(teams)
-  teams.sort { |x, y| [x.losses, y.conf_champ] <=> [y.losses, x.conf_champ] }
+  teams.sort { |x, y| [x.losses, y.conf_champ, y.wins] <=> [y.losses, x.conf_champ, x.wins] }
 end
 
 def get_championship_games(teams)
@@ -111,10 +130,6 @@ def get_championship_games(teams)
       next
     else
       championship_games[division_champ.conference] += [division_champ]
-      puts "#{division} Standings"
-      ranked.each_with_index do |team, idx|
-        puts "#{idx + 1}. #{team} #{team.conference_record} #{team.overall_record}"
-      end
     end
   end
 
@@ -132,6 +147,32 @@ def champ_sim(team1, team2)
   champ.conf_champ += 1
 end
 
+def get_playoff_teams(teams, spots = 4)
+  ranked = ranker(teams)
+  ranked_list(ranked, 25)
+  ranked.take(spots)
+end
+
+def ranked_list(ranked, num)
+  puts "Top #{num}"
+  num.times do |i|
+    sample = ranked[i]
+    puts "\##{i + 1} #{sample.name} #{sample.wins}-#{sample.losses} (#{sample.conf_wins}-#{sample.conf_losses})"
+  end
+end
+
+def render_standings(teams)
+  division_hash = new_division_hash(teams)
+
+  division_hash.each do |division, members|
+    ranked = members.shuffle.sort { |x, y| [x.conf_losses, x.losses] <=> [y.conf_losses, y.losses] }
+    puts "#{division} Standings"
+    ranked.each_with_index do |team, idx|
+      puts "#{idx + 1}. #{team.conference_record} #{team.overall_record} #{team}"
+    end
+  end
+end
+
 if __FILE__ == $0
   teams = Team.create_all
   run_season(teams)
@@ -142,11 +183,4 @@ if __FILE__ == $0
 
   #get_championship_games(teams)
 
-  puts "Top 10"
-  puts "******"
-  ranked = ranker(teams)
-  10.times do |i|
-    sample = ranked[i]
-    puts "\##{i + 1} #{sample.name} #{sample.wins}-#{sample.losses} (#{sample.conf_wins}-#{sample.conf_losses})"
-  end
 end

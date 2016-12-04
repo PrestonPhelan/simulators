@@ -1,0 +1,14 @@
+##To Do
+
+-Get ratings constants
+-Write simulation code that takes in ratings
+
+-Million Sim Data to Gather
+  -Best team wins title rate
+  -True top 4, each make the playoffs rate
+
+
+##Done
+-Add conference championship games
+-Add playoffs
+-Render standings
