@@ -25,8 +25,10 @@ def generate_full_schedule(teams)
 
   games
 end
+
 ##Non-Conference Schedule
 ##Each team gets a random game against another non-conference P5 school
+
 def generate_non_conference_games(conference_hash)
   clone_hash = conference_hash.clone
   clone_hash.each do |k, v|

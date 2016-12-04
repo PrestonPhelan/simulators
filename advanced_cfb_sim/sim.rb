@@ -1,4 +1,5 @@
 require_relative 'team'
+require_relative 'scheduler'
 require 'byebug'
 
 ##DEFINE RATINGS CONSTANTS
@@ -18,7 +19,7 @@ def new_conference_hash(teams)
   teams.each do |team|
     conferences[team.conference] += [team]
   end
-  
+
   conferences
 end
 
@@ -51,16 +52,60 @@ end
 
 
 ##Game simulator
-  # sim_game(home, away)
-    ##Determine if away is team or just rating
-    ##Determine winner
-      ##Norm Dist (home_rating + 3 - away_rating, STDDEV)
-      ##If rand(x) > y, home, away
-    ##Update W-L
-      #if conference
-        #winner.add_conference_win
-        #loser.add_conference_loss
-      #else
-        #winner.add_win
-        #loser.add_loss
+def sim_game(home, away)
+    #Determine if away is team or just rating
+  winner = rand(2) == 1 ? home : away
+  loser = winner == home ? away : home
+
+  if away.is_a?(Team)
+    if winner.conference == loser.conference
+      winner.add_conference_win
+      loser.add_conference_loss
+    else
+      winner.add_win
+      loser.add_loss
+    end
+  else
+    winner == home ? winner.add_win : loser.add_loss
+  end
+
+  puts "#{winner} over #{loser}"
+
+  #Determine winner
+    #Norm Dist (home_rating + 3 - away_rating, STDDEV)
+    #If rand(x) > y, home, away
+  #Update W-L
+    # if conference
+    #   winner.add_conference_win
+    #   loser.add_conference_loss
+    # else
+    #   winner.add_win
+    #   loser.add_loss
+end
+
+def run_season(teams = Team.create_all)
+  games = generate_full_schedule(teams)
+
+  games.shuffle.each { |game| sim_game(game[0], game[1]) }
+end
+
+def ranker(teams)
+  teams.sort { |x, y| x.losses <=> y.losses }
+end
+
+if __FILE__ == $0
+  teams = Team.create_all
+  run_season(teams)
+  # 5.times do
+  #   sample = teams.sample
+  #   puts "#{sample.name}: #{sample.wins}-#{sample.losses} (#{sample.conf_wins}-#{sample.conf_losses})"
   # end
+
+  puts "Top 10"
+  puts "******"
+  ranked = ranker(teams)
+  10.times do |i|
+    sample = ranked[i]
+    puts "\##{i + 1} #{sample.name} #{sample.wins}-#{sample.losses} (#{sample.conf_wins}-#{sample.conf_losses})"
+  end
+end
