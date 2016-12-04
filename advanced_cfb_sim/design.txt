@@ -1,10 +1,13 @@
 ##To Do
-
--Write simulation code that takes in ratings
+-Write Season class to store results
+-Sims based on different playoff sizes
 
 -Million Sim Data to Gather
   -Best team wins title rate
-  -True top 4, each make the playoffs rate
+  -Each true rank playoff count
+  -Weaker conferences overrepresented?
+
+
 
 
 ##Done
@@ -13,3 +16,4 @@
 -Render standings
 -Get ratings constants
 -Write ratings assignment code
+-Write simulation code that takes in ratings

@@ -7,16 +7,6 @@ require 'rubystats'
 G5_RATINGS = File.readlines('g5_ratings.txt').map(&:to_f).freeze
 RATINGS = File.readlines('p5_ratings.txt').map(&:to_f).freeze
 
-##Assign ratings to teams
-def assign_ratings(teams = Team.create_all)
-  teams.shuffle.each_with_index do |team, idx|
-    team.rating = RATINGS[idx]
-    team.true_rank = idx + 1
-  end
-
-  teams
-end
-
 def new_conference_hash(teams)
   conferences = Hash.new { Array.new }
 
@@ -37,132 +27,6 @@ def new_division_hash(teams)
   divisions
 end
 
-##Run G5 games
-  # TEAMS.each do |team|
-  #   2.times do
-  #     opp_rating = G5_RATINGS.sample
-  #     sim_game(team, opponent)
-  #   end
-  # end
-
-##Generate P5 Matchups, Run
-
-##Generate conference game list, Run
-
-##Play all games
-
-
-### HELPER METHODS
-
-
-##Game simulator
-def sim_game(home, away, neutral = false)
-  away_rating = away.is_a?(Team) ? away.rating : away
-
-  game_mean = home.rating - away_rating
-  game_mean += 3 unless neutral
-  gen = Rubystats::NormalDistribution.new(game_mean, 13)
-  result = gen.rng
-  #Placeholder code that assigns winner by coin flip
-  # winner = rand(2) == 1 ? home : away
-  # loser = winner == home ? away : home
-
-  winner = result > 0 ? home : away
-  loser = winner == home ? away : home
-
-  if away.is_a?(Team)
-    if winner.conference == loser.conference
-      winner.add_conference_win
-      loser.add_conference_loss
-    else
-      winner.add_win
-      loser.add_loss
-    end
-  else
-    winner == home ? winner.add_win : loser.add_loss
-  end
-
-  #puts "#{winner} over #{loser} by #{result.to_i}"
-
-  #Determine winner
-    #Norm Dist (home_rating + 3 - away_rating, STDDEV)
-    #If rand(x) > y, home, away
-  #Update W-L
-    # if conference
-    #   winner.add_conference_win
-    #   loser.add_conference_loss
-    # else
-    #   winner.add_win
-    #   loser.add_loss
-    winner
-end
-
-def run_season(teams = Team.create_all)
-  assign_ratings(teams)
-
-  games = generate_full_schedule(teams)
-
-  games.shuffle.each { |game| sim_game(game[0], game[1]) }
-
-  render_standings(teams)
-
-  champ_games = get_championship_games(teams)
-
-  champ_games.each { |_, game| champ_sim(game[0], game[1]) }
-
-  playoff_teams = get_playoff_teams(teams)
-
-  best_made_playoffs = false
-  playoff_teams.each do |team|
-    best_made_playoffs = true if team.true_rank == 1
-  end
-
-  playoff_matchups = [
-    [playoff_teams[0], playoff_teams[3]],
-    [playoff_teams[1], playoff_teams[2]]
-  ]
-
-  national_championship = []
-
-  playoff_matchups.each do |game|
-    national_championship << sim_game(game[0], game[1], true)
-  end
-
-  champion = sim_game(national_championship[0], national_championship[1], true)
-
-  puts "#{champion} wins the national championship!"
-
-  [champion, best_made_playoffs]
-end
-
-def ranker(teams)
-  teams.sort { |x, y| [x.losses, y.conf_champ, y.wins, y.rating] <=> [y.losses, x.conf_champ, x.wins, y.rating] }
-end
-
-def get_championship_games(teams)
-  division_hash = new_division_hash(teams)
-  championship_games = Hash.new { Array.new }
-
-  division_hash.each do |division, members|
-    ranked = members.shuffle.sort { |x, y| [x.conf_losses, x.losses] <=> [y.conf_losses, y.losses] }
-    division_champ = ranked[0]
-    division_champ.div_winner += 1
-    if division == "Big_12 "
-      division_champ.conf_champ += 1
-      next
-    else
-      championship_games[division_champ.conference] += [division_champ]
-    end
-  end
-
-  championship_games.each do |conf, matchup|
-    next if conf == :Big_12
-    puts "#{conf} Championship Game: #{matchup[0]} (#{matchup[0].overall_record}) vs. #{matchup[1]} (#{matchup[1].overall_record})"
-  end
-
-  championship_games
-end
-
 def champ_sim(team1, team2)
   champ = sim_game(team1, team2, true)
   puts "#{champ} wins their conference championship!"
@@ -175,38 +39,29 @@ def get_playoff_teams(teams, spots = 4)
   ranked.take(spots)
 end
 
-def ranked_list(ranked, num)
-  puts "Top #{num}"
-  num.times do |i|
-    sample = ranked[i]
-    puts "\##{i + 1} (#{sample.true_rank}) #{sample.name} #{sample.wins}-#{sample.losses} (#{sample.conf_wins}-#{sample.conf_losses})"
-  end
-end
 
-def render_standings(teams)
-  division_hash = new_division_hash(teams)
-
-  division_hash.each do |division, members|
-    ranked = members.shuffle.sort { |x, y| [x.conf_losses, x.losses] <=> [y.conf_losses, y.losses] }
-    puts "#{division} Standings"
-    ranked.each_with_index do |team, idx|
-      puts "#{idx + 1}. #{team.conference_record} #{team.overall_record} #{team}"
-    end
-  end
-end
 
 if __FILE__ == $0
   best_team_wins = 0
   best_made_playoffs = 0
-  100.times do
+  undefeateds = 0
+  conferences_represented = 0
+  all_different = 0
+  1000000.times do
     teams = Team.create_all
     results = run_season(teams)
     best_team_wins += 1 if results[0].true_rank == 1
     best_made_playoffs += 1 if results[1]
+    undefeateds += results[2]
+    conferences_represented += results[3]
+    all_different += 1 if results[4]
   end
 
-  puts "Best team won #{best_team_wins} times out of 100."
+  puts "Best team won #{best_team_wins} times out of a million."
   puts "Best team made playoffs #{best_made_playoffs} times."
+  puts "There were an average of #{undefeateds / 1000000.0} undefeated regular season teams."
+  puts "There were an average of #{conferences_represented / 1000000.0} conferences in the playoffs."
+  puts "Four different conferences were represented #{all_different} times."
   # 5.times do
   #   sample = teams.sample
   #   puts "#{sample.name}: #{sample.wins}-#{sample.losses} (#{sample.conf_wins}-#{sample.conf_losses})"

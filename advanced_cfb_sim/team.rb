@@ -46,7 +46,8 @@ TEAMS = {
 
 class Team
   attr_accessor :wins, :losses, :conf_wins, :conf_losses,
-                :rating, :true_rank, :conf_champ, :div_winner
+                :rating, :true_rank, :conf_champ, :div_winner,
+                :playoff_team
   attr_reader :name, :conference, :division
 
   def self.create_all
@@ -81,6 +82,7 @@ class Team
     @conf_losses = 0
     @div_winner = 0
     @conf_champ = 0
+    @playoff_team = false
   end
 
   def add_win
