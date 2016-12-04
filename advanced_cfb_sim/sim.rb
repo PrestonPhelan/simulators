@@ -43,24 +43,88 @@ def champ_counts(sims, rank)
   sims.map { |season| season.champion.true_rank }.count(rank)
 end
 
+def best_qualifed_counts(sims)
+  sims.count { |season| season.best_qualified? }
+end
+
+def average_champ_rank(sims)
+  sims.inject(0) { |acc, season| acc + season.champion.true_rank } / sims.size.to_f
+end
+
+def print_key_metrics(sims)
+  n = sims.size
+
+  successes = 0
+  selected = 0
+  champ_ranks = 0
+  champ_game_ranks = 0.0
+  championship_spreads = 0
+  rank_harmonic_means = 0.0
+  rating_harmonic_means = 0.0
+
+  sims.each do |season|
+    successes += 1 if season.champion.true_rank == 1
+    selected += 1 if season.best_qualified?
+    champ_ranks += season.champion.true_rank
+    champ_game_ranks += season.championship_teams_rank_avg
+    championship_spreads += season.championship_spread
+    rank_harmonic_means += season.championship_rankings_harmonic_mean
+    rating_harmonic_means += season.championship_ratings_harmonic_mean
+  end
+
+  puts "The best team wins #{(successes / n.to_f * 100).round(2)}% of the time."
+  puts "The best team is selected for postseason #{(selected / n.to_f * 100).round(2)}% of the time."
+  puts "The average champion's true rank is #{(champ_ranks / n.to_f).round(2)}"
+  puts "The average championship game participant's true rank is #{(champ_game_ranks / n.to_f).round(2)}"
+  puts "The average championship game spread is #{(championship_spreads / n.to_f).round(2)}"
+  puts "The average harmoic mean of the championship game rankings is #{(rank_harmonic_means / n.to_f).round(2)}"
+  puts "The average harmoic mean of the championship game ratings is #{(rating_harmonic_means / n.to_f).round(2)}"
+  puts
+end
+
 
 if __FILE__ == $0
-  num_sims = 50000
-  two_team_sims = get_sims(2, num_sims)
-  two_team_success = champ_counts(two_team_sims, 1) / num_sims.to_f
-  puts "In the old BCS championship format, the best team wins #{two_team_success * 100}% of the time"
-  four_team_sims = get_sims(4, num_sims)
-  four_team_success = champ_counts(four_team_sims, 1) / num_sims.to_f
-  puts "In a four-team playoff format, the best team wins #{four_team_success * 100}% of the time"
-  eight_team_sims = get_sims(8, num_sims)
-  eight_team_success = champ_counts(eight_team_sims, 1) / num_sims.to_f
-  puts "In an eight-team playoff format, the best team wins #{eight_team_success * 100}% of the time"
-  sixteen_team_sims = get_sims(16, num_sims)
-  sixteen_team_success = champ_counts(sixteen_team_sims, 1) / num_sims.to_f
-  puts "In a sixteen-team playoff format, the best team wins #{sixteen_team_success * 100}% of the time"
-  thirtytwo_team_sims = get_sims(32, num_sims)
-  thirtytwo_team_success = champ_counts(thirtytwo_team_sims, 1) / num_sims.to_f
-  puts "In a 32-team playoff format, the best team wins #{thirtytwo_team_success * 100}% of the time"
+  num_sims = 100000
+
+  sims = get_sims(2, num_sims)
+  puts "In a single championship game format:"
+  print_key_metrics(sims)
+
+  sims = get_sims(3, num_sims)
+  puts "In a three-team playoff format:"
+  print_key_metrics(sims)
+
+  sims = get_sims(4, num_sims)
+  puts "In a four-team playoff format:"
+  print_key_metrics(sims)
+
+  sims = get_sims(5, num_sims)
+  puts "In a five-team playoff format:"
+  print_key_metrics(sims)
+
+  sims = get_sims(6, num_sims)
+  puts "In a six-team playoff format:"
+  print_key_metrics(sims)
+
+  sims = get_sims(8, num_sims)
+  puts "In an eight-team playoff format:"
+  print_key_metrics(sims)
+
+  sims = get_sims(10, num_sims)
+  puts "In a ten-team playoff format:"
+  print_key_metrics(sims)
+
+  sims = get_sims(12, num_sims)
+  puts "In a twelve-team playoff format:"
+  print_key_metrics(sims)
+
+  sims = get_sims(14, num_sims)
+  puts "In a fourteen-team playoff format:"
+  print_key_metrics(sims)
+
+  sims = get_sims(16, num_sims)
+  puts "In a sixteen-team playoff format:"
+  print_key_metrics(sims)
 
   # two_team_sims = []
   # 1000.times do

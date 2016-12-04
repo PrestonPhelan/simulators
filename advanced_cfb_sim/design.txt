@@ -1,19 +1,21 @@
 ##To Do
--Write Season class to store results
--Sims based on different playoff sizes
+-Refactor G5 teams
+  -Create G5 class
+  -Allow it to receive necessary methods and do nothing
+  -Update sim_game
+-Variability in P5 ratings; different types of years
 
 -Million Sim Data to Gather
   -Best team wins title rate
   -Each true rank playoff count
   -Weaker conferences overrepresented?
 
-
-
-
 ##Done
+-Sims based on different playoff sizes
 -Add conference championship games
 -Add playoffs
 -Render standings
 -Get ratings constants
 -Write ratings assignment code
 -Write simulation code that takes in ratings
+-Accommodate non-power of 2 playoff sizes

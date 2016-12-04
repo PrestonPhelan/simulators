@@ -142,26 +142,18 @@ class Season
 
   POWERS_OF_TWO = [1, 2, 4, 8, 16, 32, 64, 128].freeze
   def get_playoff_teams
-    #Don't forget to order matchups correctly
+    #Matchups must return in correct playoff tree order.
 
     qualifiers = ranker.take(@playoff_size)
-
     qualifiers.each { |team| team.playoff_team = true }
-
-    #debugger
-
     until POWERS_OF_TWO.include?(qualifiers.size)
       qualifiers << "Bye"
-      #debugger
     end
 
-    puts "#{qualifiers.map(&:to_s)}"
-
     ordered = [qualifiers.first]
-
     until ordered.size == qualifiers.size
       new_ordered = Array.new
-      ordered.each_with_index do |team, idx|
+      ordered.each do |team|
         rank = qualifiers.find_index(team) + 1
         opp_rnk = ordered.size * 2 - rank
         new_ordered << team
@@ -169,15 +161,17 @@ class Season
       end
       ordered = new_ordered
     end
-
-    puts "#{ordered.map(&:to_s)}"
-
+    ordered_teams = ordered.uniq
+    ordered_teams.delete("Bye")
+    raise unless ordered_teams.size == @playoff_size
     ordered
   end
 
   def run_playoffs(playoff_teams)
-    return sim_game(playoff_teams) if playoff_teams.size == 2
-
+    if playoff_teams.size == 2
+      @championship_participants = playoff_teams
+      return sim_game(playoff_teams)
+    end
     winners = Array.new
     (playoff_teams.size / 2).times do |i|
       winners << sim_game(playoff_teams[i..i + 1], true)
@@ -187,10 +181,38 @@ class Season
   end
 
   def playoff_team_true_ranks
-    playoff_teams.map(&:true_rank)
+    @playoff_teams.map(&:true_rank)
   end
 
   def undefeated_count
     @teams.count { |team| team.losses == 0 }
+  end
+
+  def best_qualified?
+    @playoff_teams.each do |team|
+      next unless team.is_a?(Team)
+      return true if team.true_rank == 1
+    end
+    false
+  end
+
+  def championship_teams_rank_avg
+    total = @championship_participants.inject(0) do |acc, team|
+      acc + team.true_rank
+    end
+
+    total / 2.0
+  end
+
+  def championship_ratings_harmonic_mean
+    Math.sqrt(@championship_participants[0].rating * @championship_participants[1].rating)
+  end
+
+  def championship_rankings_harmonic_mean
+    Math.sqrt(@championship_participants[0].true_rank * @championship_participants[1].true_rank)
+  end
+
+  def championship_spread
+    (@championship_participants[0].rating - @championship_participants[1].rating).abs
   end
 end
