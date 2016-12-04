@@ -45,7 +45,8 @@ TEAMS = {
 }.freeze
 
 class Team
-  attr_accessor :wins, :losses, :conf_wins, :conf_losses, :rating
+  attr_accessor :wins, :losses, :conf_wins, :conf_losses,
+                :rating, :conf_champ, :div_winner
   attr_reader :name, :conference, :division
 
   def self.create_all
@@ -77,6 +78,8 @@ class Team
     @losses = 0
     @conf_wins = 0
     @conf_losses = 0
+    @div_winner = 0
+    @conf_champ = 0
   end
 
   def add_win
@@ -99,5 +102,13 @@ class Team
 
   def to_s
     @name
+  end
+
+  def conference_record
+    "#{@conf_wins}-#{@conf_losses}"
+  end
+
+  def overall_record
+    "#{@wins}-#{@losses}"
   end
 end

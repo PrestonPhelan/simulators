@@ -53,7 +53,7 @@ end
 
 ##Game simulator
 def sim_game(home, away)
-    #Determine if away is team or just rating
+  #Placeholder code that assigns winner by coin flip
   winner = rand(2) == 1 ? home : away
   loser = winner == home ? away : home
 
@@ -81,16 +81,55 @@ def sim_game(home, away)
     # else
     #   winner.add_win
     #   loser.add_loss
+    winner
 end
 
 def run_season(teams = Team.create_all)
   games = generate_full_schedule(teams)
 
   games.shuffle.each { |game| sim_game(game[0], game[1]) }
+
+  champ_games = get_championship_games(teams)
+
+  champ_games.each { |_, game| champ_sim(game[0], game[1]) }
 end
 
 def ranker(teams)
-  teams.sort { |x, y| x.losses <=> y.losses }
+  teams.sort { |x, y| [x.losses, y.conf_champ] <=> [y.losses, x.conf_champ] }
+end
+
+def get_championship_games(teams)
+  division_hash = new_division_hash(teams)
+  championship_games = Hash.new { Array.new }
+
+  division_hash.each do |division, members|
+    ranked = members.shuffle.sort { |x, y| [x.conf_losses, x.losses] <=> [y.conf_losses, y.losses] }
+    division_champ = ranked[0]
+    division_champ.div_winner += 1
+    if division == "Big_12 "
+      division_champ.conf_champ += 1
+      next
+    else
+      championship_games[division_champ.conference] += [division_champ]
+      puts "#{division} Standings"
+      ranked.each_with_index do |team, idx|
+        puts "#{idx + 1}. #{team} #{team.conference_record} #{team.overall_record}"
+      end
+    end
+  end
+
+  championship_games.each do |conf, matchup|
+    next if conf == :Big_12
+    puts "#{conf} Championship Game: #{matchup[0]} (#{matchup[0].overall_record}) vs. #{matchup[1]} (#{matchup[1].overall_record})"
+  end
+
+  championship_games
+end
+
+def champ_sim(team1, team2)
+  champ = sim_game(team1, team2)
+  puts "#{champ} wins their conference championship!"
+  champ.conf_champ += 1
 end
 
 if __FILE__ == $0
@@ -100,6 +139,8 @@ if __FILE__ == $0
   #   sample = teams.sample
   #   puts "#{sample.name}: #{sample.wins}-#{sample.losses} (#{sample.conf_wins}-#{sample.conf_losses})"
   # end
+
+  #get_championship_games(teams)
 
   puts "Top 10"
   puts "******"
