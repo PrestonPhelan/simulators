@@ -1,9 +1,25 @@
 require_relative 'team'
+require 'byebug'
+
+##DEFINE RATINGS CONSTANTS
 
 ##Assign ratings to teams
-blank_teams = Team.create_all
-blank_teams.shuffle.each_with_index do |team, idx|
-  team.rating = RATINGS[idx]
+def assign_ratings(teams = Team.create_all)
+  teams.shuffle.each_with_index do |team, idx|
+    team.rating = RATINGS[idx]
+  end
+
+  teams
+end
+
+def new_conference_hash(teams)
+  conferences = Hash.new { Array.new }
+
+  teams.each do |team|
+    conferences[team.conference] += [team]
+  end
+
+  conferences
 end
 
 ##Run G5 games

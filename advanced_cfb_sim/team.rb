@@ -96,4 +96,8 @@ class Team
     @losses += 1
     @conf_losses += 1
   end
+
+  def to_s
+    @name
+  end
 end
