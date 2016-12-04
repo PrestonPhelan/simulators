@@ -1,9 +1,10 @@
 require_relative 'sim'
 require_relative 'scheduler'
 require 'rubystats'
+require 'byebug'
 
 class Season
-  attr_reader :champion, :undefeateds
+  attr_reader :champion, :undefeateds, :playoff_teams
 
   def initialize(playoff_size = 4)
     @teams = Team.create_all
@@ -65,6 +66,8 @@ class Season
 
     @undefeateds = undefeated_count
 
+    #debugger
+
     @playoff_teams = get_playoff_teams
 
     @champion = run_playoffs(@playoff_teams)
@@ -73,6 +76,9 @@ class Season
   def sim_game(matchup, neutral = false)
     home = matchup[0]
     away = matchup[1]
+
+    return home if away == "Bye"
+    return away if home == "Bye"
 
     away_rating = away.is_a?(Team) ? away.rating : away
 
@@ -85,18 +91,22 @@ class Season
     loser = winner == home ? away : home
 
     if away.is_a?(Team)
-      if winner.conference == loser.conference
-        winner.add_conference_win
-        loser.add_conference_loss
-      else
-        winner.add_win
-        loser.add_loss
-      end
+      update_record(winner, loser)
     else
       winner == home ? winner.add_win : loser.add_loss
     end
     #puts "#{winner} over #{loser} by #{result.to_i}"
     winner
+  end
+
+  def update_record(winner, loser)
+    if winner.conference == loser.conference
+      winner.add_conference_win
+      loser.add_conference_loss
+    else
+      winner.add_win
+      loser.add_loss
+    end
   end
 
   def champ_sim(game)
@@ -130,24 +140,37 @@ class Season
     championship_games
   end
 
+  POWERS_OF_TWO = [1, 2, 4, 8, 16, 32, 64, 128].freeze
   def get_playoff_teams
     #Don't forget to order matchups correctly
+
     qualifiers = ranker.take(@playoff_size)
 
     qualifiers.each { |team| team.playoff_team = true }
 
+    #debugger
+
+    until POWERS_OF_TWO.include?(qualifiers.size)
+      qualifiers << "Bye"
+      #debugger
+    end
+
+    puts "#{qualifiers.map(&:to_s)}"
+
     ordered = [qualifiers.first]
 
-    until ordered.size == @playoff_size
+    until ordered.size == qualifiers.size
       new_ordered = Array.new
-        ordered.each_with_index do |team, idx|
-          rank = idx + 1
-          opp_rnk = ordered.size - rank
-          new_ordered << team
-          new_ordered << qualifiers[opp_rnk]
-        end
+      ordered.each_with_index do |team, idx|
+        rank = qualifiers.find_index(team) + 1
+        opp_rnk = ordered.size * 2 - rank
+        new_ordered << team
+        new_ordered << qualifiers[opp_rnk]
+      end
       ordered = new_ordered
     end
+
+    puts "#{ordered.map(&:to_s)}"
 
     ordered
   end
@@ -157,7 +180,7 @@ class Season
 
     winners = Array.new
     (playoff_teams.size / 2).times do |i|
-      winners << sim_game(playoff_teams[i..i + 1])
+      winners << sim_game(playoff_teams[i..i + 1], true)
     end
 
     run_playoffs(winners)
