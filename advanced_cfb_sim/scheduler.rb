@@ -194,16 +194,18 @@ end
 #
 # puts "#{games.length} games generated."
 #
-teams = Team.create_all
-games = generate_full_schedule(teams)
+if __FILE__ == $0
+  teams = Team.create_all
+  games = generate_full_schedule(teams)
 
-puts "#{games.length} games generated, #{32 * 10 + 128} expected"
-5.times do
-  print games.sample.map(&:to_s)
-  puts
-end
+  puts "#{games.length} games generated, #{32 * 10 + 128} expected"
+  5.times do
+    print games.sample.map(&:to_s)
+    puts
+  end
 
-teams.each do |team|
-  team_games = games.flatten.count(team)
-  puts "Error: #{team_games} games generated for #{team}" unless team_games == 12
+  teams.each do |team|
+    team_games = games.flatten.count(team)
+    puts "Error: #{team_games} games generated for #{team}" unless team_games == 12
+  end
 end

@@ -46,7 +46,7 @@ TEAMS = {
 
 class Team
   attr_accessor :wins, :losses, :conf_wins, :conf_losses,
-                :rating, :conf_champ, :div_winner
+                :rating, :true_rank, :conf_champ, :div_winner
   attr_reader :name, :conference, :division
 
   def self.create_all
@@ -74,6 +74,7 @@ class Team
     @conference = conference
     @division = division
     @rating = nil
+    @true_rank = nil
     @wins = 0
     @losses = 0
     @conf_wins = 0

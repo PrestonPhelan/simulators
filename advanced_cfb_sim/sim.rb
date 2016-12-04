@@ -1,6 +1,7 @@
 require_relative 'team'
 require_relative 'scheduler'
 require 'byebug'
+require 'rubystats'
 
 ##DEFINE RATINGS CONSTANTS
 G5_RATINGS = File.readlines('g5_ratings.txt').map(&:to_f).freeze
@@ -55,9 +56,18 @@ end
 
 
 ##Game simulator
-def sim_game(home, away)
+def sim_game(home, away, neutral = false)
+  away_rating = away.is_a?(Team) ? away.rating : away
+
+  game_mean = home.rating - away_rating
+  game_mean += 3 unless neutral
+  gen = Rubystats::NormalDistribution.new(game_mean, 13)
+  result = gen.rng
   #Placeholder code that assigns winner by coin flip
-  winner = rand(2) == 1 ? home : away
+  # winner = rand(2) == 1 ? home : away
+  # loser = winner == home ? away : home
+
+  winner = result > 0 ? home : away
   loser = winner == home ? away : home
 
   if away.is_a?(Team)
@@ -72,7 +82,7 @@ def sim_game(home, away)
     winner == home ? winner.add_win : loser.add_loss
   end
 
-  puts "#{winner} over #{loser}"
+  #puts "#{winner} over #{loser} by #{result.to_i}"
 
   #Determine winner
     #Norm Dist (home_rating + 3 - away_rating, STDDEV)
@@ -89,10 +99,7 @@ end
 
 def run_season(teams = Team.create_all)
   assign_ratings(teams)
-  5.times do
-    sample = teams.sample
-    puts "#{sample}: #{sample.rating}"
-  end
+
   games = generate_full_schedule(teams)
 
   games.shuffle.each { |game| sim_game(game[0], game[1]) }
@@ -105,6 +112,11 @@ def run_season(teams = Team.create_all)
 
   playoff_teams = get_playoff_teams(teams)
 
+  best_made_playoffs = false
+  playoff_teams.each do |team|
+    best_made_playoffs = true if team.true_rank == 1
+  end
+
   playoff_matchups = [
     [playoff_teams[0], playoff_teams[3]],
     [playoff_teams[1], playoff_teams[2]]
@@ -113,16 +125,18 @@ def run_season(teams = Team.create_all)
   national_championship = []
 
   playoff_matchups.each do |game|
-    national_championship << sim_game(game[0], game[1])
+    national_championship << sim_game(game[0], game[1], true)
   end
 
-  champion = sim_game(national_championship[0], national_championship[1])
+  champion = sim_game(national_championship[0], national_championship[1], true)
 
   puts "#{champion} wins the national championship!"
+
+  [champion, best_made_playoffs]
 end
 
 def ranker(teams)
-  teams.sort { |x, y| [x.losses, y.conf_champ, y.wins] <=> [y.losses, x.conf_champ, x.wins] }
+  teams.sort { |x, y| [x.losses, y.conf_champ, y.wins, y.rating] <=> [y.losses, x.conf_champ, x.wins, y.rating] }
 end
 
 def get_championship_games(teams)
@@ -150,7 +164,7 @@ def get_championship_games(teams)
 end
 
 def champ_sim(team1, team2)
-  champ = sim_game(team1, team2)
+  champ = sim_game(team1, team2, true)
   puts "#{champ} wins their conference championship!"
   champ.conf_champ += 1
 end
@@ -165,7 +179,7 @@ def ranked_list(ranked, num)
   puts "Top #{num}"
   num.times do |i|
     sample = ranked[i]
-    puts "\##{i + 1} #{sample.name} #{sample.wins}-#{sample.losses} (#{sample.conf_wins}-#{sample.conf_losses})"
+    puts "\##{i + 1} (#{sample.true_rank}) #{sample.name} #{sample.wins}-#{sample.losses} (#{sample.conf_wins}-#{sample.conf_losses})"
   end
 end
 
@@ -182,8 +196,17 @@ def render_standings(teams)
 end
 
 if __FILE__ == $0
-  teams = Team.create_all
-  run_season(teams)
+  best_team_wins = 0
+  best_made_playoffs = 0
+  100.times do
+    teams = Team.create_all
+    results = run_season(teams)
+    best_team_wins += 1 if results[0].true_rank == 1
+    best_made_playoffs += 1 if results[1]
+  end
+
+  puts "Best team won #{best_team_wins} times out of 100."
+  puts "Best team made playoffs #{best_made_playoffs} times."
   # 5.times do
   #   sample = teams.sample
   #   puts "#{sample.name}: #{sample.wins}-#{sample.losses} (#{sample.conf_wins}-#{sample.conf_losses})"
