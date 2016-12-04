@@ -2,9 +2,6 @@ require_relative 'team'
 require_relative 'sim'
 require 'byebug'
 
-G5_RATINGS = [75, 74, 73, 55, 33, 55, 24, 53, 42, 44, 56].freeze
-
-
 def generate_full_schedule(teams)
   games = Array.new
 

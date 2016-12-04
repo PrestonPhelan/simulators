@@ -1,6 +1,5 @@
 ##To Do
 
--Get ratings constants
 -Write simulation code that takes in ratings
 
 -Million Sim Data to Gather
@@ -12,3 +11,5 @@
 -Add conference championship games
 -Add playoffs
 -Render standings
+-Get ratings constants
+-Write ratings assignment code

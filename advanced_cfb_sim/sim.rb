@@ -3,11 +3,14 @@ require_relative 'scheduler'
 require 'byebug'
 
 ##DEFINE RATINGS CONSTANTS
+G5_RATINGS = File.readlines('g5_ratings.txt').map(&:to_f).freeze
+RATINGS = File.readlines('p5_ratings.txt').map(&:to_f).freeze
 
 ##Assign ratings to teams
 def assign_ratings(teams = Team.create_all)
   teams.shuffle.each_with_index do |team, idx|
     team.rating = RATINGS[idx]
+    team.true_rank = idx + 1
   end
 
   teams
@@ -85,6 +88,11 @@ def sim_game(home, away)
 end
 
 def run_season(teams = Team.create_all)
+  assign_ratings(teams)
+  5.times do
+    sample = teams.sample
+    puts "#{sample}: #{sample.rating}"
+  end
   games = generate_full_schedule(teams)
 
   games.shuffle.each { |game| sim_game(game[0], game[1]) }
