@@ -80,3 +80,26 @@ def six_team_division_games(division_hash, conference)
 end
   ##Pac-12: 5 division game, 4 other division
   ##Big 12: Every other team round robin
+def big_12_games(conference_hash)
+  games = Array.new
+  teams = conference_hash[:Big_12].shuffle
+
+  teams.each_with_index do |team, idx|
+    4.times do |i|
+      games << [team, teams[idx - i]]
+    end
+    games << [team, teams[idx - 5]] if idx < 5
+  end
+
+  games
+end
+
+conference_hash = new_conference_hash(Team.create_all)
+games = big_12_games(conference_hash)
+
+puts "#{games.length} games generated."
+
+games.each do |matchup|
+  print matchup.map(&:to_s)
+  puts
+end

@@ -16,9 +16,9 @@ def new_conference_hash(teams)
   conferences = Hash.new { Array.new }
 
   teams.each do |team|
-    conferences[team.conference] << [team]
+    conferences[team.conference] += [team]
   end
-
+  
   conferences
 end
 
