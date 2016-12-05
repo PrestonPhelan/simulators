@@ -61,6 +61,7 @@ def print_key_metrics(sims)
   championship_spreads = 0
   rank_harmonic_means = 0.0
   rating_harmonic_means = 0.0
+  champ_counts = Hash.new(0)
 
   sims.each do |season|
     successes += 1 if season.champion.true_rank == 1
@@ -70,7 +71,26 @@ def print_key_metrics(sims)
     championship_spreads += season.championship_spread
     rank_harmonic_means += season.championship_rankings_harmonic_mean
     rating_harmonic_means += season.championship_ratings_harmonic_mean
+    champ_counts[season.champion.true_rank] += 1
   end
+
+
+  other_top_ten = 0
+  other_top_25 = 0
+  weak_teams = 0
+
+  champ_counts.each do |k, v|
+    next unless k > 5
+    if k <= 10
+      other_top_ten += v
+    elsif k <= 25
+      other_top_25 += v
+    else
+      weak_teams += v
+    end
+  end
+
+
 
   puts "The best team wins #{(successes / n.to_f * 100).round(2)}% of the time."
   puts "The best team is selected for postseason #{(selected / n.to_f * 100).round(2)}% of the time."
@@ -79,6 +99,15 @@ def print_key_metrics(sims)
   puts "The average championship game spread is #{(championship_spreads / n.to_f).round(2)}"
   puts "The average harmoic mean of the championship game rankings is #{(rank_harmonic_means / n.to_f).round(2)}"
   puts "The average harmoic mean of the championship game ratings is #{(rating_harmonic_means / n.to_f).round(2)}"
+  puts "True rank 2 won #{(champ_counts[2] * 100 / n.to_f).round(2)}% of the time."
+  puts "True rank 3 won #{(champ_counts[3] * 100 / n.to_f).round(2)}% of the time."
+  puts "True rank 4 won #{(champ_counts[4] * 100 / n.to_f).round(2)}% of the time."
+  puts "True rank 5 won #{(champ_counts[5] * 100 / n.to_f).round(2)}% of the time."
+  puts "Rest of top 10 won #{(other_top_ten * 100 / n.to_f).round(2)}% of the time."
+  puts "Rest of top 25 won #{(other_top_25 * 100 / n.to_f).round(2)}% of the time."
+  puts "Weak teams won #{(weak_teams * 100 / n.to_f).round(2)}% of the time."
+
+
   puts
 end
 
@@ -90,17 +119,17 @@ if __FILE__ == $0
   puts "In a single championship game format:"
   print_key_metrics(sims)
 
-  sims = get_sims(3, num_sims)
-  puts "In a three-team playoff format:"
-  print_key_metrics(sims)
+  # sims = get_sims(3, num_sims)
+  # puts "In a three-team playoff format:"
+  # print_key_metrics(sims)
 
   sims = get_sims(4, num_sims)
   puts "In a four-team playoff format:"
   print_key_metrics(sims)
 
-  sims = get_sims(5, num_sims)
-  puts "In a five-team playoff format:"
-  print_key_metrics(sims)
+  # sims = get_sims(5, num_sims)
+  # puts "In a five-team playoff format:"
+  # print_key_metrics(sims)
 
   sims = get_sims(6, num_sims)
   puts "In a six-team playoff format:"
@@ -110,17 +139,17 @@ if __FILE__ == $0
   puts "In an eight-team playoff format:"
   print_key_metrics(sims)
 
-  sims = get_sims(10, num_sims)
-  puts "In a ten-team playoff format:"
-  print_key_metrics(sims)
+  # sims = get_sims(10, num_sims)
+  # puts "In a ten-team playoff format:"
+  # print_key_metrics(sims)
 
   sims = get_sims(12, num_sims)
   puts "In a twelve-team playoff format:"
   print_key_metrics(sims)
-
-  sims = get_sims(14, num_sims)
-  puts "In a fourteen-team playoff format:"
-  print_key_metrics(sims)
+  #
+  # sims = get_sims(14, num_sims)
+  # puts "In a fourteen-team playoff format:"
+  # print_key_metrics(sims)
 
   sims = get_sims(16, num_sims)
   puts "In a sixteen-team playoff format:"
