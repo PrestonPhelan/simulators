@@ -24,9 +24,9 @@ class Season
 
 
   def ranker
-    @teams.sort do |x, y|
-      [x.losses, y.conf_champ, y.wins, y.rating] <=>
-      [y.losses, x.conf_champ, x.wins, y.rating]
+    @teams.shuffle.sort do |x, y|
+      [x.losses, y.conf_champ, y.wins] <=>
+      [y.losses, x.conf_champ, x.wins]
     end
   end
 
