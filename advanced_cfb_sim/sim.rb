@@ -62,6 +62,8 @@ def print_key_metrics(sims)
   rank_harmonic_means = 0.0
   rating_harmonic_means = 0.0
   champ_counts = Hash.new(0)
+  standard_playoff = Array.new(sims.first.playoff_size, 0)
+  standard_champ = Array.new(2, 0)
 
   sims.each do |season|
     successes += 1 if season.champion.true_rank == 1
@@ -72,6 +74,12 @@ def print_key_metrics(sims)
     rank_harmonic_means += season.championship_rankings_harmonic_mean
     rating_harmonic_means += season.championship_ratings_harmonic_mean
     champ_counts[season.champion.true_rank] += 1
+    season.playoff_team_true_ranks.sort.each_with_index do |rank, idx|
+      standard_playoff[idx] += rank
+    end
+    season.championship_participants.map(&:true_rank).sort.each_with_index do |rank, idx|
+      standard_champ[idx] += rank
+    end
   end
 
 
@@ -106,6 +114,8 @@ def print_key_metrics(sims)
   puts "Rest of top 10 won #{(other_top_ten * 100 / n.to_f).round(2)}% of the time."
   puts "Rest of top 25 won #{(other_top_25 * 100 / n.to_f).round(2)}% of the time."
   puts "Weak teams won #{(weak_teams * 100 / n.to_f).round(2)}% of the time."
+  puts "The standard playoff year looked like: #{standard_playoff.map { |tot| (tot / n.to_f).round(2) } }"
+  puts "The standard championship game looked like: #{standard_champ.map { |tot| (tot / n.to_f).round(2) } }"
 
 
   puts

@@ -4,7 +4,8 @@ require 'rubystats'
 require 'byebug'
 
 class Season
-  attr_reader :champion, :undefeateds, :playoff_teams
+  attr_reader :champion, :undefeateds, :playoff_teams,
+              :playoff_size, :championship_participants
 
   def initialize(playoff_size = 4)
     @teams = Team.create_all
@@ -26,7 +27,7 @@ class Season
   def ranker
     @teams.sort do |x, y|
       [x.losses, y.conf_champ, y.wins, y.rating] <=>
-      [y.losses, x.conf_champ, x.wins, y.rating]
+      [y.losses, x.conf_champ, x.wins, x.rating]
     end
   end
 
@@ -181,7 +182,12 @@ class Season
   end
 
   def playoff_team_true_ranks
-    @playoff_teams.map(&:true_rank)
+    ranks = []
+    @playoff_teams.each do |team|
+      next unless team.is_a?(Team)
+      ranks << team.true_rank
+    end
+    ranks
   end
 
   def undefeated_count
